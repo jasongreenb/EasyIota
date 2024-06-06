@@ -1,0 +1,39 @@
+/* NavBar.module.css */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #333;
+  color: white;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navLinks {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.navLinks li {
+  margin: 0 1rem;
+}
+
+.navLink {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem; /* Increase font size */
+  padding: 0.5rem 0.75rem; /* Add padding for larger clickable area */
+}
+
+.activeNavLink {
+  color: #ff6347; /* Different color for the current nav link */
+  font-size: 1.2rem; /* Ensure active link also has increased font size */
+  padding: 0.5rem 0.75rem; /* Add padding for larger clickable area */
+}
