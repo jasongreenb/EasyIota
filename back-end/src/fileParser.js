@@ -1,21 +1,19 @@
 const csv = require("csv-parser");
-const fs = require("fs");
+const stream = require("stream");
 
-function parseCSV(file, _list) {
+function parseCSV(buffer, _list) {
   return new Promise((resolve, reject) => {
-    fs.access(file, fs.constants.F_OK, (err) => {
-      if (err) {
-        reject(new Error("File does not Exist"));
-        return;
-      }
-    });
+    const readable = new stream.Readable();
+    readable._read = () => {}; // _read is required but you can noop it
+    readable.push(buffer);
+    readable.push(null);
 
-    fs.createReadStream(file)
+    readable
       .pipe(csv({ skip_lines_with_empty_values: true }))
       .on("data", (data) => {
         if (
           data.Shotty.trim() !== "" &&
-          data.Officer.trim() != "" &&
+          data.Officer.trim() !== "" &&
           data.Driver.trim() !== ""
         ) {
           data.Date = new Date(data.Date);
