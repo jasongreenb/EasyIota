@@ -55,19 +55,18 @@ export default function DragDropFiles() {
   };
 
   return (
-    <div>
-      {isError && <div>{isError}</div>}
+    <div className={styles.container}>
+      {isError && <div className={styles.error}>{isError}</div>}
 
       {files && (
         <div>
-          <ul>
+          <ul className={styles.filesList}>
             {Array.from(files).map((file, idx) => (
-              <li key={idx}>{file.name}</li>
+              <li key={idx}>Uploaded file: {file.name}</li>
             ))}
           </ul>
 
-          <form onSubmit={handleUpload}>
-            <br />
+          <form className={styles.uploadForm} onSubmit={handleUpload}>
             <label htmlFor="tableUploadInput">
               Enter the name of the table for your data:{" "}
             </label>
@@ -77,40 +76,38 @@ export default function DragDropFiles() {
               value={tableName}
               onChange={(e) => setTableName(e.target.value)}
             />
-            {tableName}
             <br />
-            <br />
-            <button type="submit">Upload?</button>
+            <button type="submit">Upload</button>
           </form>
         </div>
       )}
 
       {uploaded && (
-        <div>
-          You uploaded your file congrats!
-          <label htmlFor="reupload"> Upload again?</label>
-          <button id="reupload" onClick={() => setUploaded(false)}>
-            Click here!
-          </button>
+        <div className={styles.successMessage}>
+          File uploaded successfully, if you want to upload again click ->
+          <button onClick={() => setUploaded(false)}>Upload again</button>
         </div>
       )}
 
       {!files && !uploaded && (
-        <div className={styles.centerContent}>
-          <div
-            className={styles.dropBox}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
+        <div
+          className={styles.dragDropContainer}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <p>Drag and drop a file here (csv)</p>
+          <button
+            className={styles.selectFileButton}
+            onClick={() => inputRef.current.click()}
           >
-            <p>Drag and drop files here</p>
-          </div>
+            Select a File (csv)
+          </button>
           <input
             type="file"
             onChange={(e) => setFiles(e.target.files)}
             hidden
             ref={inputRef}
           />
-          <button onClick={() => inputRef.current.click()}>Select Files</button>
         </div>
       )}
     </div>

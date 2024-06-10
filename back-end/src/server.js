@@ -5,8 +5,6 @@ const mysql = require("mysql2");
 const parseCSV = require("./fileParser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 require("dotenv").config();
-// const result = require("dotenv").config();
-// // console.log(result.parsed); // Should log the parsed contents of your .env file
 
 async function handleParse(file) {
   const results = [];
@@ -18,13 +16,12 @@ const server = express();
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 server.use(cors());
-const port = 8000;
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "easyiota",
+  host: process.env.host,
+  user: process.env.user,
+  password: process.env.password,
+  database: process.env.database,
 });
 
 const s3Client = new S3Client({
@@ -42,11 +39,13 @@ db.connect((e) => {
   } else {
     console.log("Connected to DB successfully");
 
-    server.listen(port, function check(error) {
+    server.listen(process.env.port, function check(error) {
       if (error) {
         console.error("Error connecting to the server: ", error);
       } else {
-        console.log(`Successfully connected to the server on port ${port}`);
+        console.log(
+          `Successfully connected to the server on port ${process.env.port}`
+        );
       }
     });
   }
@@ -56,7 +55,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 async function uploadToB2(file) {
   const uploadParams = {
-    Bucket: "sober-sheet-uploads",
+    Bucket: process.env.bucket,
     Key: `${Date.now()}_${file.originalname}`, // Unique file name
     Body: file.buffer,
     ContentType: file.mimetype,
