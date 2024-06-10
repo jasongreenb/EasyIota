@@ -1,12 +1,11 @@
 const express = require("express");
 const multer = require("multer"); // Middleware for handling multipart/form-data (files)
 const mysql = require("mysql2");
-const fs = require("fs"); // allows you to read, write, delete, and manage files and directories
-const path = require("path");
 const parseCSV = require("./fileParser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const result = require("dotenv").config();
-// console.log(result.parsed); // Should log the parsed contents of your .env file
+require("dotenv").config();
+// const result = require("dotenv").config();
+// // console.log(result.parsed); // Should log the parsed contents of your .env file
 
 async function handleParse(file) {
   const results = [];
@@ -15,7 +14,10 @@ async function handleParse(file) {
 }
 
 const server = express();
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 const port = 8000;
+
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -48,8 +50,6 @@ db.connect((e) => {
   }
 });
 
-server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
 const upload = multer({ storage: multer.memoryStorage() });
 
 async function uploadToB2(file) {
@@ -67,18 +67,27 @@ async function uploadToB2(file) {
 server.post("/uploadcsv", upload.single("file"), async (req, res) => {
   const file = req.file;
 
+  const tableName = req.body?.tableName;
+
   if (!file) {
     return res.status(400).send("No file uploaded");
+  } else if (!tableName) {
+    return res.status(400).send("No table name entered");
   }
 
   try {
     await uploadToB2(file);
+    res.status(200).send("File uploaded successfully");
 
     const results = await handleParse(file.buffer);
+    const createQuery = process.env.createquery;
 
     for (const item of results) {
-      const query =
-        "INSERT INTO shifts_fall_25 (Date, Day_Of_Week, Officer, Officer_Phone_Num, Shotty, Shotty_Phone_Num, Driver, Driver_Phone_Num, Venmo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      const query = `INSERT INTO ${mysql.escapeId(
+        tableName
+      )} (Date, Day_Of_Week, \
+        Officer, Officer_Phone_Num, Shotty, Shotty_Phone_Num,\
+         Driver, Driver_Phone_Num, Venmo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const values = [
         item.Date,
         item.Day,
@@ -90,7 +99,12 @@ server.post("/uploadcsv", upload.single("file"), async (req, res) => {
         item.Driver_Phone_Num,
         item.Driver_venmo,
       ];
-
+      db.query(createQuery, (err, result) => {
+        if (err) {
+          return res.status(500).send("Failed to create new database");
+        } else {
+        }
+      });
       db.query(query, values, (err, result) => {
         if (err) {
           console.error("Error inserting data: ", err);
@@ -121,6 +135,9 @@ server.post("/uploadcsv", upload.single("file"), async (req, res) => {
       */
 
         // console.log("Inserted data: ", result);
+        // if (result) {
+        //   console.log("SUCCESS!");
+        // }
       });
     }
 
