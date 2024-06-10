@@ -5,7 +5,8 @@ export default function DragDropFiles() {
   const [files, setFiles] = useState(null);
   const inputRef = useRef();
   const [tableName, setTableName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const [isError, setError] = useState(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -15,66 +16,86 @@ export default function DragDropFiles() {
     e.preventDefault();
     setFiles(e.dataTransfer.files);
   };
-  // send files to the server
-  const handleUpload = async () => {
-    setLoading(true);
+
+  const handleUpload = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    if (!files || !tableName) {
+      console.error("No file or table name provided");
+      setError("No file or table uploaded");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", files[0]);
     formData.append("tableName", tableName);
 
     try {
-      const response = await fetch("/uploadcsv", {
+      console.log(formData);
+      const response = await fetch("http://localhost:8000/uploadcsv", {
         method: "POST",
         body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
 
       if (response.ok) {
         console.log("File Uploaded Successfully");
 
+        setUploaded(true);
         setFiles(null);
         setTableName("");
+        setError(null);
       } else {
         console.error("Failed to upload file");
+        setError("Failed to upload file");
       }
     } catch (err) {
-      console.error("error uploading file:");
+      console.error("Error uploading file:", err);
+      setError("Error uploading file");
     }
   };
 
-  if (files) {
-    return (
-      <div>
-        <ul>
-          {Array.from(files).map((file, idx) => (
-            <li key={idx}>{file.name}</li>
-          ))}
-        </ul>
-        <form onSubmit={handleUpload}>
-          <br />
-          <label for="tableUploadInput">
-            Enter the name of the table for your data:{" "}
-          </label>
-          <input
-            id="tableUploadInput"
-            type="text"
-            value={tableName}
-            onChange={(e) => setTableName(e.target.value)}
-          />
-          <br />
-          <br />
-          <button type="submit">Upload?</button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <>
-      {!files && (
+    <div>
+      {isError && <div>{isError}</div>}
+
+      {files && (
+        <div>
+          <ul>
+            {Array.from(files).map((file, idx) => (
+              <li key={idx}>{file.name}</li>
+            ))}
+          </ul>
+
+          <form onSubmit={handleUpload}>
+            <br />
+            <label htmlFor="tableUploadInput">
+              Enter the name of the table for your data:{" "}
+            </label>
+            <input
+              id="tableUploadInput"
+              type="text"
+              value={tableName}
+              onChange={(e) => setTableName(e.target.value)}
+            />
+            {tableName}
+            <br />
+            <br />
+            <button type="submit">Upload?</button>
+          </form>
+        </div>
+      )}
+
+      {uploaded && (
+        <div>
+          You uploaded your file congrats!
+          <label htmlFor="reupload"> Upload again?</label>
+          <button id="reupload" onClick={() => setUploaded(false)}>
+            Click here!
+          </button>
+        </div>
+      )}
+
+      {!files && !uploaded && (
         <div className={styles.centerContent}>
           <div
             className={styles.dropBox}
@@ -92,6 +113,6 @@ export default function DragDropFiles() {
           <button onClick={() => inputRef.current.click()}>Select Files</button>
         </div>
       )}
-    </>
+    </div>
   );
 }

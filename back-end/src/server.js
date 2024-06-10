@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const multer = require("multer"); // Middleware for handling multipart/form-data (files)
 const mysql = require("mysql2");
 const parseCSV = require("./fileParser");
@@ -16,6 +17,7 @@ async function handleParse(file) {
 const server = express();
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
+server.use(cors());
 const port = 8000;
 
 const db = mysql.createConnection({
@@ -77,10 +79,20 @@ server.post("/uploadcsv", upload.single("file"), async (req, res) => {
 
   try {
     await uploadToB2(file);
-    res.status(200).send("File uploaded successfully");
 
     const results = await handleParse(file.buffer);
-    const createQuery = process.env.createquery;
+    const createQuery = process.env.createquery.replace(
+      "??",
+      mysql.escapeId(tableName)
+    );
+
+    let errors = [];
+
+    db.query(createQuery, (err, result) => {
+      if (err) {
+        errors.push(err);
+      }
+    });
 
     for (const item of results) {
       const query = `INSERT INTO ${mysql.escapeId(
@@ -99,48 +111,17 @@ server.post("/uploadcsv", upload.single("file"), async (req, res) => {
         item.Driver_Phone_Num,
         item.Driver_venmo,
       ];
-      db.query(createQuery, (err, result) => {
-        if (err) {
-          return res.status(500).send("Failed to create new database");
-        } else {
-        }
-      });
+
       db.query(query, values, (err, result) => {
         if (err) {
-          console.error("Error inserting data: ", err);
-          return res.status(500).send("Failed to insert data");
+          errors.push(err);
         }
-
-        // UNCOMMENT TO SEE RESULT OF INSERTION, example success ->
-
-        /*
-        Inserted data:  ResultSetHeader {
-          fieldCount: 0,
-          affectedRows: 1,
-          insertId: 5,
-          info: '',
-          serverStatus: 2,
-          warningStatus: 0,
-          changedRows: 0
-        }
-        Inserted data:  ResultSetHeader {
-          fieldCount: 0,
-          affectedRows: 1,
-          insertId: 6,
-          info: '',
-          serverStatus: 2,
-          warningStatus: 0,
-          changedRows: 0
-        }
-      */
-
-        // console.log("Inserted data: ", result);
-        // if (result) {
-        //   console.log("SUCCESS!");
-        // }
       });
     }
 
+    if (errors.length > 0) {
+      return res.status(500).send("Some queries failed");
+    }
     res.send("File uploaded and data inserted");
   } catch (err) {
     console.error("Error parsing file: ", err);
