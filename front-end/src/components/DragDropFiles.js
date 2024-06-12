@@ -7,6 +7,7 @@ export default function DragDropFiles() {
   const [tableName, setTableName] = useState("");
   const [uploaded, setUploaded] = useState(false);
   const [isError, setError] = useState(null);
+  const [response, setResponse] = useState("");
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -32,12 +33,14 @@ export default function DragDropFiles() {
 
     try {
       console.log(formData);
-      const response = await fetch("http://localhost:8000/uploadcsv", {
+      const response = await fetch("http://localhost:8000/api/uploadcsv", {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        setResponse(responseData);
         console.log("File Uploaded Successfully");
 
         setUploaded(true);
@@ -84,8 +87,15 @@ export default function DragDropFiles() {
 
       {uploaded && (
         <div className={styles.successMessage}>
-          File uploaded successfully, if you want to upload again click ->
+          File uploaded successfully, if you want to upload again click --
           <button onClick={() => setUploaded(false)}>Upload again</button>
+          <div>
+            Response message: {response.message}
+            <br />
+            <br />
+            <br />
+            Results: {JSON.stringify(response.results, null, 2)}
+          </div>
         </div>
       )}
 

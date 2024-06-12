@@ -47,8 +47,12 @@ async function uploadToB2(file) {
 }
 
 const uploadRoute = require("./routes/file_upload_routes/upload_post_route");
-server.use("/", uploadRoute({ handleParse, db, s3Client, upload, uploadToB2 }));
+const getRoute = require("./routes/file_retrieve_routes/upcoming_get_route");
+const updateRoute = require("./routes/file_update_routes/update_post_route");
 
+server.use("/", uploadRoute({ handleParse, db, s3Client, upload, uploadToB2 }));
+server.use("/", getRoute({ db }));
+server.use("/", updateRoute({ db }));
 db.connect((e) => {
   if (e) {
     console.error("Error connecting to DB: ", e);
