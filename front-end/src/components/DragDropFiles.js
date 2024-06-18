@@ -33,8 +33,12 @@ export default function DragDropFiles() {
 
     try {
       console.log(formData);
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:8000/api/uploadcsv", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 

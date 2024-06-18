@@ -1,10 +1,11 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer"); // Middleware for handling multipart/form-data (files)
 const mysql = require("mysql2");
 const parseCSV = require("./fileParser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-require("dotenv").config();
+
 const server = express();
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
@@ -50,11 +51,13 @@ const uploadRoute = require("./routes/file_upload_routes/upload_post_route");
 const getRoute = require("./routes/file_retrieve_routes/upcoming_get_route");
 const updateRoute = require("./routes/file_update_routes/update_post_route");
 const getTablesRoute = require("./routes/table_get_routes/table_get_route");
+const loginRoute = require("./routes/login_routes/login");
 
 server.use("/", uploadRoute({ handleParse, db, s3Client, upload, uploadToB2 }));
 server.use("/", getRoute({ db }));
 server.use("/", updateRoute({ db }));
 server.use("/", getTablesRoute({ db }));
+server.use("/", loginRoute());
 
 db.connect((e) => {
   if (e) {
