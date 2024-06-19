@@ -5,6 +5,9 @@ const multer = require("multer"); // Middleware for handling multipart/form-data
 const mysql = require("mysql2");
 const parseCSV = require("./fileParser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const cron = require("node-cron");
+const axios = require("axios");
+const jwt = require("jsonwebtoken");
 
 const server = express();
 server.use(express.json());
@@ -52,12 +55,14 @@ const getRoute = require("./routes/file_retrieve_routes/upcoming_get_route");
 const updateRoute = require("./routes/file_update_routes/update_post_route");
 const getTablesRoute = require("./routes/table_get_routes/table_get_route");
 const loginRoute = require("./routes/login_routes/login");
+const EmailRoute = require("./routes/mailer_routes/send_email");
 
 server.use("/", uploadRoute({ handleParse, db, s3Client, upload, uploadToB2 }));
 server.use("/", getRoute({ db }));
 server.use("/", updateRoute({ db }));
 server.use("/", getTablesRoute({ db }));
 server.use("/", loginRoute());
+server.use("/", EmailRoute({ db }));
 
 db.connect((e) => {
   if (e) {
@@ -76,3 +81,24 @@ db.connect((e) => {
     });
   }
 });
+
+cron.schedule("11 15 * * *", async () => {
+  try {
+    const token = jwt.sign({}, process.env.SECRET_KEY, { expiresIn: "1d" });
+
+    const response = await axios.post(
+      "http://localhost:8000/api/send-email",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("API RESPONSE: ", response.data);
+  } catch (error) {
+    console.error("Error calling API: ", error.message);
+  }
+});
+process.stdin.resume();

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import UploadPage from "./pages/UploadPage";
 import NewViewPage from "./pages/NewViewPage";
+import EmailPage from "./pages/EmailPage";
 
 function App() {
   const isAuthenticated = localStorage.getItem("token") !== null;
@@ -11,7 +12,7 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={isAuthenticated ? <Navigate to="/upload" /> : <HomePage />}
+          element={isAuthenticated ? <HomePage /> : <HomePage />}
         />
         <Route
           path="upload"
@@ -24,6 +25,11 @@ function App() {
         <Route
           path="*"
           element={isAuthenticated ? <HomePage /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/emails"
+          element={isAuthenticated ? <EmailPage /> : <Navigate to="/" />}
         />
       </Routes>
     </BrowserRouter>
