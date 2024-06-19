@@ -1,0 +1,43 @@
+.container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.container2 {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.shiftlist {
+  border: 2px solid black;
+  margin: 20px;
+  width: 30%;
+  height: 80vh;
+  overflow: scroll;
+  text-align: center;
+  list-style-type: none;
+}
+
+.shiftlistitem {
+  text-align: center;
+  justify-content: center;
+  border-bottom: 1px solid black;
+  margin: 10px;
+  padding: 10px;
+}
+
+.prompt {
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  display: flex;
+  margin-top: 30vh;
+}
+
+.tablelist {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  list-style-type: none;
+  flex-direction: column;
+}

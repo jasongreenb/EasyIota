@@ -1,0 +1,12 @@
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+.halfWidth {
+  flex: 1; /* This will make each div take up equal space */
+  padding: 10px; /* Optional: Add some padding for better spacing */
+  box-sizing: border-box; /* Ensure padding is included in the width calculation */
+  border: solid greenyellow 1px;
+  height: 85vh;
+}
